@@ -1,153 +1,316 @@
-import { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from "react-native";
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useState, useRef } from 'react';
+import { Colors } from '../constants/colors';
 
-const initialMessages = [
-  {
-    id: "1",
-    sender: "decorator",
-    text: "Hello! I received your decoration brief. The AI design looks amazing!",
-    time: "10:00 AM",
-  },
-  {
-    id: "2",
-    sender: "client",
-    text: "Thank you! Can you replicate it exactly for my wedding on 25th December?",
-    time: "10:02 AM",
-  },
-  {
-    id: "3",
-    sender: "decorator",
-    text: "Absolutely! I have done similar setups before. My quote for this would be GHS 1,800.",
-    time: "10:05 AM",
-  },
-  {
-    id: "4",
-    sender: "client",
-    text: "That works for me. Can we confirm the booking?",
-    time: "10:07 AM",
-  },
-  {
-    id: "5",
-    sender: "decorator",
-    text: "Perfect! I will send you a confirmation shortly. Looking forward to making your day beautiful! 🌸",
-    time: "10:09 AM",
-  },
+const quickReplies = [
+  '✨ Looks great!',
+  '🎨 Change color?',
+  '📅 Book now',
 ];
 
 export default function ChatScreen() {
-  const [messages, setMessages] = useState(initialMessages);
-  const [input, setInput] = useState("");
+  const router = useRouter();
+  const { name, emoji, specialty, area } = useLocalSearchParams<{
+    name: string;
+    emoji: string;
+    specialty: string;
+    area: string;
+  }>();
 
-  const sendMessage = () => {
+  const decoratorName = name || 'Kofi Decor';
+  const decoratorEmoji = emoji || '👨🏿';
+  const decoratorSpecialty = specialty || 'Interior Designer';
+  const decoratorArea = area || 'Accra, Ghana';
+
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      me: true,
+      text: `Hi ${decoratorName}! I'm looking for a modern design for my space. Can you help me?`,
+      time: '10:42 AM',
+      hasPreview: false,
+      hasBookingSummary: false,
+    },
+    {
+      id: 2,
+      me: false,
+      text: "Absolutely! I've generated this AI preview for you. It features minimalist furniture with Kente accents and Adinkra wall art.",
+      time: '10:45 AM',
+      hasPreview: true,
+      hasBookingSummary: false,
+    },
+    {
+      id: 3,
+      me: true,
+      text: 'This is exactly what I was imagining! How much would this setup cost?',
+      time: '10:47 AM',
+      hasPreview: false,
+      hasBookingSummary: false,
+    },
+    {
+      id: 4,
+      me: false,
+      text: '',
+      time: '10:48 AM',
+      hasPreview: false,
+      hasBookingSummary: true,
+    },
+  ]);
+
+  const [input, setInput] = useState('');
+  const scrollRef = useRef<ScrollView>(null);
+
+  const handleSend = () => {
     if (!input.trim()) return;
     const newMsg = {
-      id: String(messages.length + 1),
-      sender: "client",
-      text: input.trim(),
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      id: messages.length + 1,
+      me: true,
+      text: input,
+      time: 'Now',
+      hasPreview: false,
+      hasBookingSummary: false,
     };
-    setMessages([...messages, newMsg]);
-    setInput("");
+    setMessages((prev) => [...prev, newMsg]);
+    setInput('');
+
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: prev.length + 1,
+          me: false,
+          text: 'Got it! I will prepare a full quote and send it to you by end of day. Is the venue confirmed?',
+          time: 'Now',
+          hasPreview: false,
+          hasBookingSummary: false,
+        },
+      ]);
+    }, 1200);
+
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  const handleQuickReply = (reply: string) => {
+    setInput(reply);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>A</Text>
-        </View>
-        <View>
-          <Text style={styles.name}>Akosua Mensah</Text>
-          <Text style={styles.status}>🟢 Online</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <Text style={styles.bookingTag}>Confirmed ✓</Text>
-        </View>
-      </View>
-
-      {/* Brief Card */}
-      <View style={styles.briefCard}>
-        <Text style={styles.briefTitle}>📋 Attached Brief</Text>
-        <Text style={styles.briefText}>
-          Wedding · 25 Dec 2026 · Accra International Conference Centre · GHS
-          1,800
-        </Text>
-      </View>
-
-      {/* Messages */}
-      <ScrollView style={styles.messages} showsVerticalScrollIndicator={false}>
-        {messages.map((msg) => (
-          <View
-            key={msg.id}
-            style={[
-              styles.msgRow,
-              msg.sender === "client" && styles.msgRowRight,
-            ]}
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => router.back()}
           >
-            {msg.sender === "decorator" && (
-              <View style={styles.msgAvatar}>
-                <Text style={styles.msgAvatarText}>A</Text>
+            <Text style={styles.backArrow}>←</Text>
+          </TouchableOpacity>
+          <View style={styles.headerInfo}>
+            <View style={styles.headerAvatar}>
+              <Text style={styles.headerAvatarEmoji}>{decoratorEmoji}</Text>
+            </View>
+            <View>
+              <Text style={styles.headerName}>{decoratorName}</Text>
+              <View style={styles.onlineRow}>
+                <View style={styles.onlineDot} />
+                <Text style={styles.onlineText}>
+                  Online • {decoratorSpecialty}
+                </Text>
               </View>
-            )}
-            <View
-              style={[
-                styles.bubble,
-                msg.sender === "client"
-                  ? styles.bubbleClient
-                  : styles.bubbleDecorator,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.bubbleText,
-                  msg.sender === "client" && styles.bubbleTextClient,
-                ]}
-              >
-                {msg.text}
-              </Text>
-              <Text
-                style={[
-                  styles.time,
-                  msg.sender === "client" && styles.timeClient,
-                ]}
-              >
-                {msg.time}
-              </Text>
             </View>
           </View>
-        ))}
-        <View style={{ height: 20 }} />
-      </ScrollView>
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.headerActionBtn}>
+              <Text style={styles.headerActionIcon}>📞</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerActionBtn}>
+              <Text style={styles.headerActionIcon}>⋮</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-      {/* Input */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <View style={styles.inputRow}>
+        {/* Date separator */}
+        <View style={styles.dateSeparator}>
+          <View style={styles.dateLine} />
+          <Text style={styles.dateText}>TODAY</Text>
+          <View style={styles.dateLine} />
+        </View>
+
+        {/* Messages */}
+        <ScrollView
+          ref={scrollRef}
+          style={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() =>
+            scrollRef.current?.scrollToEnd({ animated: true })
+          }
+        >
+          {messages.map((msg) => (
+            <View key={msg.id}>
+              {/* Regular message */}
+              {!msg.hasPreview && !msg.hasBookingSummary && (
+                <View style={[
+                  styles.messageRow,
+                  msg.me ? styles.messageRowMe : styles.messageRowThem,
+                ]}>
+                  {!msg.me && (
+                    <View style={styles.msgAvatar}>
+                      <Text style={styles.msgAvatarEmoji}>
+                        {decoratorEmoji}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={[
+                    styles.bubble,
+                    msg.me ? styles.bubbleMe : styles.bubbleThem,
+                  ]}>
+                    <Text style={[
+                      styles.bubbleText,
+                      msg.me ? styles.bubbleTextMe : styles.bubbleTextThem,
+                    ]}>
+                      {msg.text}
+                    </Text>
+                    <Text style={[
+                      styles.bubbleTime,
+                      msg.me ? styles.bubbleTimeMe : styles.bubbleTimeThem,
+                    ]}>
+                      {msg.time}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* AI Preview message */}
+              {msg.hasPreview && (
+                <View style={styles.messageRow}>
+                  <View style={styles.msgAvatar}>
+                    <Text style={styles.msgAvatarEmoji}>{decoratorEmoji}</Text>
+                  </View>
+                  <View style={styles.previewCard}>
+                    <Text style={styles.bubbleTextThem}>{msg.text}</Text>
+                    <View style={styles.previewImageArea}>
+                      <View style={styles.previewBadge}>
+                        <Text style={styles.previewBadgeText}>
+                          AI GENERATED PREVIEW
+                        </Text>
+                      </View>
+                      <View style={styles.previewImage}>
+                        <Text style={styles.previewEmoji}>🏠</Text>
+                        <Text style={styles.previewLabel}>
+                          Modern Living Room with Kente Accents
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.bubbleTimeThem}>{msg.time}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Booking Summary */}
+              {msg.hasBookingSummary && (
+                <View style={styles.messageRow}>
+                  <View style={styles.msgAvatar}>
+                    <Text style={styles.msgAvatarEmoji}>{decoratorEmoji}</Text>
+                  </View>
+                  <View style={styles.bookingSummaryCard}>
+                    <Text style={styles.bookingSummaryTitle}>
+                      Booking Summary
+                    </Text>
+                    <View style={styles.bookingSummaryRow}>
+                      <Text style={styles.bookingSummaryLabel}>Service</Text>
+                      <Text style={styles.bookingSummaryValue}>
+                        Modern Living Room Decor
+                      </Text>
+                    </View>
+                    <View style={styles.bookingSummaryRow}>
+                      <Text style={styles.bookingSummaryLabel}>
+                        Scheduled Date
+                      </Text>
+                      <Text style={styles.bookingSummaryValue}>
+                        Oct 12, 2024
+                      </Text>
+                    </View>
+                    <View style={styles.bookingSummaryRow}>
+                      <Text style={styles.bookingSummaryLabel}>
+                        Estimated Price
+                      </Text>
+                      <Text style={styles.bookingSummaryPrice}>
+                        GH₵ 2,500
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.confirmBtn}
+                      onPress={() => router.push('/bookings')}
+                    >
+                      <Text style={styles.confirmBtnText}>
+                        Review & Confirm
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
+          ))}
+          <View style={{ height: 20 }} />
+        </ScrollView>
+
+        {/* Quick replies */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.quickRepliesRow}
+          contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
+        >
+          {quickReplies.map((reply) => (
+            <TouchableOpacity
+              key={reply}
+              style={styles.quickReplyChip}
+              onPress={() => handleQuickReply(reply)}
+            >
+              <Text style={styles.quickReplyText}>{reply}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Input bar */}
+        <View style={styles.inputBar}>
+          <TouchableOpacity style={styles.attachBtn}>
+            <Text style={styles.attachIcon}>📎</Text>
+          </TouchableOpacity>
           <TextInput
-            style={styles.input}
+            style={styles.inputField}
             placeholder="Type a message..."
-            placeholderTextColor="#999"
+            placeholderTextColor={Colors.textLight}
             value={input}
             onChangeText={setInput}
             multiline
           />
-          <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}>
-            <Text style={styles.sendText}>➤</Text>
+          <TouchableOpacity
+            style={[
+              styles.sendBtn,
+              !input.trim() && styles.sendBtnDisabled,
+            ]}
+            onPress={handleSend}
+            disabled={!input.trim()}
+          >
+            <Text style={styles.sendBtnText}>↑</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -156,88 +319,340 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5" },
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.bg,
+  },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1B4332",
-    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: Colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
     gap: 12,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#2D6A4F",
-    justifyContent: "center",
-    alignItems: "center",
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  avatarText: { color: "#fff", fontSize: 20, fontWeight: "bold" },
-  name: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  status: { color: "#B7E4C7", fontSize: 12 },
-  headerRight: { marginLeft: "auto" },
-  bookingTag: { color: "#B7E4C7", fontSize: 12, fontWeight: "600" },
-  briefCard: {
-    backgroundColor: "#E8F5E9",
-    padding: 12,
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: "#1B4332",
+  backArrow: {
+    fontSize: 18,
+    color: Colors.text,
   },
-  briefTitle: {
-    fontSize: 13,
-    fontWeight: "bold",
-    color: "#1B4332",
-    marginBottom: 4,
+  headerInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
-  briefText: { fontSize: 12, color: "#444" },
-  messages: { flex: 1, padding: 16 },
-  msgRow: { flexDirection: "row", marginBottom: 12, alignItems: "flex-end" },
-  msgRowRight: { flexDirection: "row-reverse" },
+  headerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.green100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  headerAvatarEmoji: {
+    fontSize: 20,
+  },
+  headerName: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  onlineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  onlineDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Colors.success,
+  },
+  onlineText: {
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerActionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerActionIcon: {
+    fontSize: 18,
+  },
+  dateSeparator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  dateLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  dateText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textLight,
+    letterSpacing: 0.5,
+  },
+  messagesContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  messageRowMe: {
+    justifyContent: 'flex-end',
+  },
+  messageRowThem: {
+    justifyContent: 'flex-start',
+  },
   msgAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#1B4332",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
+    backgroundColor: Colors.green100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
-  msgAvatarText: { color: "#fff", fontSize: 14, fontWeight: "bold" },
-  bubble: { maxWidth: "75%", padding: 12, borderRadius: 16 },
-  bubbleDecorator: { backgroundColor: "#fff", borderBottomLeftRadius: 4 },
-  bubbleClient: { backgroundColor: "#1B4332", borderBottomRightRadius: 4 },
-  bubbleText: { fontSize: 14, color: "#333" },
-  bubbleTextClient: { color: "#fff" },
-  time: { fontSize: 10, color: "#999", marginTop: 4 },
-  timeClient: { color: "#B7E4C7", textAlign: "right" },
-  inputRow: {
-    flexDirection: "row",
+  msgAvatarEmoji: {
+    fontSize: 16,
+  },
+  bubble: {
+    maxWidth: '75%',
+    borderRadius: 18,
     padding: 12,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-    gap: 8,
-    alignItems: "flex-end",
+    gap: 4,
   },
-  input: {
+  bubbleMe: {
+    backgroundColor: Colors.primary,
+    borderBottomRightRadius: 4,
+  },
+  bubbleThem: {
+    backgroundColor: Colors.white,
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  bubbleText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  bubbleTextMe: {
+    color: Colors.white,
+  },
+  bubbleTextThem: {
+    color: Colors.text,
+  },
+  bubbleTime: {
+    fontSize: 11,
+  },
+  bubbleTimeMe: {
+    color: Colors.white + '99',
+    textAlign: 'right',
+  },
+  bubbleTimeThem: {
+    color: Colors.textLight,
+  },
+  previewCard: {
+    maxWidth: '80%',
+    backgroundColor: Colors.white,
+    borderRadius: 18,
+    borderBottomLeftRadius: 4,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 10,
+  },
+  previewImageArea: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  previewBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    zIndex: 1,
+    backgroundColor: Colors.accent,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  previewBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: Colors.primary,
+    letterSpacing: 0.3,
+  },
+  previewImage: {
+    height: 160,
+    backgroundColor: Colors.green100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    gap: 8,
+  },
+  previewEmoji: {
+    fontSize: 48,
+  },
+  previewLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary,
+    textAlign: 'center',
+    paddingHorizontal: 16,
+  },
+  bookingSummaryCard: {
+    maxWidth: '80%',
+    backgroundColor: Colors.primary,
+    borderRadius: 18,
+    borderBottomLeftRadius: 4,
+    padding: 16,
+    gap: 10,
+  },
+  bookingSummaryTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.white,
+    marginBottom: 4,
+  },
+  bookingSummaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  bookingSummaryLabel: {
+    fontSize: 12,
+    color: Colors.green200,
+  },
+  bookingSummaryValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.white,
+    textAlign: 'right',
     flex: 1,
-    backgroundColor: "#f5f5f5",
+  },
+  bookingSummaryPrice: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.accent,
+  },
+  confirmBtn: {
+    backgroundColor: Colors.accent,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  confirmBtnText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.primary,
+  },
+  quickRepliesRow: {
+    maxHeight: 48,
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingVertical: 8,
+  },
+  quickReplyChip: {
+    backgroundColor: Colors.bg,
     borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  quickReplyText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  inputBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: 8,
+  },
+  attachBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  attachIcon: {
+    fontSize: 18,
+  },
+  inputField: {
+    flex: 1,
+    backgroundColor: Colors.bg,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 14,
+    color: Colors.text,
     maxHeight: 100,
   },
   sendBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#1B4332",
-    justifyContent: "center",
-    alignItems: "center",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.primary,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  sendText: { color: "#fff", fontSize: 18 },
+  sendBtnDisabled: {
+    backgroundColor: Colors.border,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  sendBtnText: {
+    fontSize: 18,
+    color: Colors.white,
+    fontWeight: '700',
+  },
 });

@@ -1,203 +1,247 @@
-import { useState } from "react";
 import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View,
-} from "react-native";
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  SafeAreaView,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Colors } from '../constants/colors';
 
-const steps = ["Details", "Design", "Confirm"];
+const bookings = [
+  {
+    id: 'BK-7294-GH',
+    design: 'Ghanaian Heritage Fusion',
+    type: 'Modern Living Room',
+    decorator: 'Kofi Decor',
+    date: 'Oct 12, 2024',
+    status: 'CONFIRMED',
+    statusColor: Colors.accent,
+    statusTextColor: Colors.primary,
+    currentStep: 2,
+    emoji: '🏠',
+    bg: '#E8F5E9',
+    steps: [
+      {
+        label: 'Enquiry Sent',
+        time: 'Sept 28, 10:45 AM',
+        done: true,
+      },
+      {
+        label: 'Booking Confirmed',
+        time: 'Sept 30, 02:15 PM',
+        done: true,
+      },
+      {
+        label: 'In Preparation',
+        time: 'Kofi is sourcing Kente materials & motifs.',
+        done: false,
+        active: true,
+      },
+      {
+        label: 'Service Completed',
+        time: 'Pending execution on site',
+        done: false,
+      },
+    ],
+  },
+  {
+    id: 'BK-6103-GH',
+    design: 'Modern Royal Wedding',
+    type: 'Wedding Reception',
+    decorator: 'Serwaa Mensah',
+    date: 'Nov 5, 2024',
+    status: 'IN PROGRESS',
+    statusColor: Colors.green100,
+    statusTextColor: Colors.primary,
+    currentStep: 1,
+    emoji: '💍',
+    bg: '#FFF9E6',
+    steps: [
+      {
+        label: 'Enquiry Sent',
+        time: 'Oct 1, 09:00 AM',
+        done: true,
+      },
+      {
+        label: 'Booking Confirmed',
+        time: 'Oct 3, 11:30 AM',
+        done: false,
+        active: true,
+      },
+      {
+        label: 'In Preparation',
+        time: 'Pending',
+        done: false,
+      },
+      {
+        label: 'Service Completed',
+        time: 'Pending',
+        done: false,
+      },
+    ],
+  },
+];
 
-export default function BookingScreen() {
-  const [step, setStep] = useState(0);
-  const [eventType, setEventType] = useState("");
-  const [eventDate, setEventDate] = useState("");
-  const [venue, setVenue] = useState("");
-  const [budget, setBudget] = useState("");
-  const [notes, setNotes] = useState("");
-
-  const eventTypes = [
-    "Wedding",
-    "Funeral",
-    "Birthday",
-    "Church",
-    "Corporate",
-    "Home",
-  ];
+export default function BookingsScreen() {
+  const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Book a Decorator</Text>
+    <SafeAreaView style={styles.safeArea}>
 
-      {/* Progress Steps */}
-      <View style={styles.stepsRow}>
-        {steps.map((s, i) => (
-          <View key={i} style={styles.stepWrapper}>
-            <View style={[styles.stepCircle, i <= step && styles.stepActive]}>
-              <Text style={[styles.stepNum, i <= step && styles.stepNumActive]}>
-                {i + 1}
-              </Text>
-            </View>
-            <Text
-              style={[styles.stepLabel, i <= step && styles.stepLabelActive]}
-            >
-              {s}
-            </Text>
-            {i < steps.length - 1 && (
-              <View
-                style={[styles.stepLine, i < step && styles.stepLineActive]}
-              />
-            )}
-          </View>
-        ))}
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>My Bookings</Text>
+        <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {step === 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Event Details</Text>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        {bookings.map((booking) => (
+          <View key={booking.id} style={styles.bookingCard}>
 
-            <Text style={styles.label}>Event Type</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.chipRow}
-              contentContainerStyle={{ paddingRight: 16 }}
-            >
-              {eventTypes.map((e) => (
-                <TouchableOpacity
-                  key={e}
-                  style={[styles.chip, eventType === e && styles.chipActive]}
-                  onPress={() => setEventType(e)}
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      eventType === e && styles.chipTextActive,
-                    ]}
-                  >
-                    {e}
-                  </Text>
-                </TouchableOpacity>
+            {/* Booking info top */}
+            <View style={styles.bookingTop}>
+              <View style={[styles.designThumb, { backgroundColor: booking.bg }]}>
+                <Text style={styles.designEmoji}>{booking.emoji}</Text>
+              </View>
+              <View style={styles.bookingInfo}>
+                <View style={styles.bookingInfoTop}>
+                  <View style={[
+                    styles.statusBadge,
+                    { backgroundColor: booking.statusColor },
+                  ]}>
+                    <Text style={[
+                      styles.statusText,
+                      { color: booking.statusTextColor },
+                    ]}>
+                      {booking.status}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.designName}>{booking.design}</Text>
+                <Text style={styles.designType}>{booking.type}</Text>
+              </View>
+            </View>
+
+            {/* Decorator & date */}
+            <View style={styles.metaRow}>
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>DECORATOR</Text>
+                <Text style={styles.metaValue}>{booking.decorator}</Text>
+              </View>
+              <View style={styles.metaDivider} />
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>DATE</Text>
+                <Text style={styles.metaValue}>{booking.date}</Text>
+              </View>
+            </View>
+
+            {/* Divider */}
+            <View style={styles.divider} />
+
+            {/* Live Status */}
+            <Text style={styles.liveStatusTitle}>LIVE STATUS</Text>
+            <View style={styles.timeline}>
+              {booking.steps.map((step, i) => (
+                <View key={i} style={styles.timelineItem}>
+                  {/* Line + dot */}
+                  <View style={styles.timelineLeft}>
+                    <View style={[
+                      styles.timelineDot,
+                      step.done && styles.timelineDotDone,
+                      step.active && styles.timelineDotActive,
+                    ]}>
+                      {step.done && (
+                        <Text style={styles.timelineDotCheck}>✓</Text>
+                      )}
+                      {step.active && (
+                        <View style={styles.timelineDotInner} />
+                      )}
+                    </View>
+                    {i < booking.steps.length - 1 && (
+                      <View style={[
+                        styles.timelineLine,
+                        step.done && styles.timelineLineDone,
+                      ]} />
+                    )}
+                  </View>
+
+                  {/* Content */}
+                  <View style={styles.timelineContent}>
+                    <Text style={[
+                      styles.timelineLabel,
+                      !step.done && !step.active && styles.timelineLabelMuted,
+                      step.active && styles.timelineLabelActive,
+                    ]}>
+                      {step.label}
+                    </Text>
+                    <Text style={[
+                      styles.timelineTime,
+                      step.active && styles.timelineTimeActive,
+                    ]}>
+                      {step.time}
+                    </Text>
+                  </View>
+                </View>
               ))}
-            </ScrollView>
+            </View>
 
-            <Text style={styles.label}>Event Date</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. 25 December 2026"
-              placeholderTextColor="#999"
-              value={eventDate}
-              onChangeText={setEventDate}
-            />
+            {/* Divider */}
+            <View style={styles.divider} />
 
-            <Text style={styles.label}>Venue</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. Accra International Conference Centre"
-              placeholderTextColor="#999"
-              value={venue}
-              onChangeText={setVenue}
-            />
+            {/* Reschedule banner */}
+            <TouchableOpacity style={styles.rescheduleBanner}>
+              <View style={styles.rescheduleLeft}>
+                <View style={styles.rescheduleIcon}>
+                  <Text style={styles.rescheduleIconText}>?</Text>
+                </View>
+                <View>
+                  <Text style={styles.rescheduleTitle}>Need to reschedule?</Text>
+                  <Text style={styles.rescheduleSubtitle}>
+                    Contact us before Oct 10th
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.rescheduleArrow}>›</Text>
+            </TouchableOpacity>
 
-            <Text style={styles.label}>Budget (GHS)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. 2000"
-              placeholderTextColor="#999"
-              keyboardType="numeric"
-              value={budget}
-              onChangeText={setBudget}
-            />
+            {/* Divider */}
+            <View style={styles.divider} />
 
-            <Text style={styles.label}>Additional Notes</Text>
-            <TextInput
-              style={[styles.input, styles.textarea]}
-              placeholder="Describe any special requirements..."
-              placeholderTextColor="#999"
-              multiline
-              numberOfLines={4}
-              value={notes}
-              onChangeText={setNotes}
-            />
-          </View>
-        )}
-
-        {step === 1 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Attach AI Design</Text>
-            <View style={styles.designBox}>
-              <Text style={styles.designEmoji}>🪄</Text>
-              <Text style={styles.designText}>
-                Attach a saved AI decoration design to send to the decorator
-              </Text>
-              <TouchableOpacity style={styles.attachBtn}>
-                <Text style={styles.attachBtnText}>Select Design</Text>
+            {/* Bottom buttons */}
+            <View style={styles.bottomBtns}>
+              <TouchableOpacity
+                style={styles.contactBtn}
+                onPress={() => router.push('/chat')}
+              >
+                <Text style={styles.contactBtnText}>
+                  💬 Contact Decorator
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.shareBtn}>
+                <Text style={styles.shareBtnText}>↗</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.orText}>— or skip this step —</Text>
           </View>
-        )}
+        ))}
 
-        {step === 2 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Confirm Booking</Text>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitle}>Booking Summary</Text>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Event Type</Text>
-                <Text style={styles.summaryValue}>
-                  {eventType || "Not set"}
-                </Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Date</Text>
-                <Text style={styles.summaryValue}>
-                  {eventDate || "Not set"}
-                </Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Venue</Text>
-                <Text style={styles.summaryValue}>{venue || "Not set"}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Budget</Text>
-                <Text style={styles.summaryValue}>
-                  {budget ? `GHS ${budget}` : "Not set"}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.statusCard}>
-              <Text style={styles.statusLabel}>Booking Status</Text>
-              <Text style={styles.statusValue}>⏳ Enquiry</Text>
-            </View>
-          </View>
-        )}
-
-        {/* Navigation Buttons */}
-        <View style={styles.btnRow}>
-          {step > 0 && (
-            <TouchableOpacity
-              style={styles.backBtn}
-              onPress={() => setStep(step - 1)}
-            >
-              <Text style={styles.backBtnText}>← Back</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[styles.nextBtn, step === 0 && { flex: 1 }]}
-            onPress={() =>
-              step < 2 ? setStep(step + 1) : alert("Booking sent to decorator!")
-            }
-          >
-            <Text style={styles.nextBtnText}>
-              {step === 2 ? "Send Booking Request" : "Next →"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* New booking button */}
+        <TouchableOpacity
+          style={styles.newBookingBtn}
+          onPress={() => router.push('/decorators')}
+        >
+          <Text style={styles.newBookingText}>+ Book a New Decorator</Text>
+        </TouchableOpacity>
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -206,149 +250,302 @@ export default function BookingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5", padding: 16 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.bg,
+  },
   header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1B4332",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 16,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  backArrow: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  bookingCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    padding: 18,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  stepsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
+  bookingTop: {
+    flexDirection: 'row',
+    gap: 14,
+    marginBottom: 16,
   },
-  stepWrapper: { alignItems: "center", flexDirection: "row" },
-  stepCircle: {
+  designThumb: {
+    width: 70,
+    height: 70,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  designEmoji: {
+    fontSize: 32,
+  },
+  bookingInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  bookingInfoTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 6,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  designName: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  designType: {
+    fontSize: 13,
+    color: Colors.textMuted,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    backgroundColor: Colors.bg,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    gap: 16,
+  },
+  metaItem: {
+    flex: 1,
+    gap: 4,
+  },
+  metaLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textLight,
+    letterSpacing: 0.5,
+  },
+  metaValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  metaDivider: {
+    width: 1,
+    backgroundColor: Colors.border,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: 16,
+  },
+  liveStatusTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textMuted,
+    letterSpacing: 0.8,
+    marginBottom: 16,
+  },
+  timeline: {
+    gap: 0,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    gap: 14,
+    minHeight: 60,
+  },
+  timelineLeft: {
+    alignItems: 'center',
+    width: 24,
+  },
+  timelineDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.bg,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  timelineDotDone: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  timelineDotActive: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    borderWidth: 3,
+  },
+  timelineDotInner: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primary,
+  },
+  timelineDotCheck: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.white,
+  },
+  timelineLine: {
+    flex: 1,
+    width: 2,
+    backgroundColor: Colors.border,
+    marginVertical: 2,
+  },
+  timelineLineDone: {
+    backgroundColor: Colors.primary,
+  },
+  timelineContent: {
+    flex: 1,
+    paddingBottom: 20,
+    gap: 4,
+  },
+  timelineLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  timelineLabelMuted: {
+    color: Colors.textLight,
+    fontWeight: '500',
+  },
+  timelineLabelActive: {
+    color: Colors.primary,
+  },
+  timelineTime: {
+    fontSize: 13,
+    color: Colors.textMuted,
+    lineHeight: 18,
+  },
+  timelineTimeActive: {
+    color: Colors.textMuted,
+    fontStyle: 'italic',
+  },
+  rescheduleBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.bg,
+    borderRadius: 12,
+    padding: 14,
+  },
+  rescheduleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  rescheduleIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#ddd",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  stepActive: { backgroundColor: "#1B4332" },
-  stepNum: { color: "#999", fontWeight: "bold" },
-  stepNumActive: { color: "#fff" },
-  stepLabel: { fontSize: 11, color: "#999", marginLeft: 4, marginRight: 4 },
-  stepLabelActive: { color: "#1B4332", fontWeight: "600" },
-  stepLine: {
-    width: 30,
-    height: 2,
-    backgroundColor: "#ddd",
-    marginHorizontal: 4,
-  },
-  stepLineActive: { backgroundColor: "#1B4332" },
-  section: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1B4332",
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#444",
-    marginBottom: 6,
-    marginTop: 12,
-  },
-  input: {
-    backgroundColor: "#f9f9f9",
-    borderRadius: 10,
-    padding: 12,
+  rescheduleIconText: {
     fontSize: 14,
-    borderWidth: 1,
-    borderColor: "#ddd",
+    fontWeight: '800',
+    color: Colors.textMuted,
   },
-  textarea: { height: 100, textAlignVertical: "top" },
-  chipRow: { marginBottom: 8 },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#f5f5f5",
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    alignSelf: "flex-start",
-  },
-  chipActive: { backgroundColor: "#1B4332", borderColor: "#1B4332" },
-  chipText: { color: "#666", fontSize: 13 },
-  chipTextActive: { color: "#fff" },
-  designBox: {
-    alignItems: "center",
-    padding: 30,
-    borderWidth: 2,
-    borderColor: "#ddd",
-    borderRadius: 12,
-    borderStyle: "dashed",
-  },
-  designEmoji: { fontSize: 40, marginBottom: 12 },
-  designText: {
+  rescheduleTitle: {
     fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 16,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 2,
   },
-  attachBtn: {
-    backgroundColor: "#1B4332",
-    borderRadius: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
+  rescheduleSubtitle: {
+    fontSize: 12,
+    color: Colors.textMuted,
   },
-  attachBtnText: { color: "#fff", fontWeight: "600" },
-  orText: { textAlign: "center", color: "#999", marginTop: 16, fontSize: 13 },
-  summaryCard: {
-    backgroundColor: "#f9f9f9",
-    borderRadius: 10,
-    padding: 16,
-    marginBottom: 12,
+  rescheduleArrow: {
+    fontSize: 22,
+    color: Colors.textLight,
   },
-  summaryTitle: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#1B4332",
-    marginBottom: 12,
+  bottomBtns: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
   },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  summaryLabel: { color: "#666", fontSize: 13 },
-  summaryValue: { color: "#333", fontSize: 13, fontWeight: "600" },
-  statusCard: {
-    backgroundColor: "#E8F5E9",
-    borderRadius: 10,
-    padding: 16,
-    alignItems: "center",
-  },
-  statusLabel: { fontSize: 13, color: "#666", marginBottom: 4 },
-  statusValue: { fontSize: 18, fontWeight: "bold", color: "#1B4332" },
-  btnRow: { flexDirection: "row", gap: 12, marginTop: 8 },
-  backBtn: {
+  contactBtn: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 14,
-    alignItems: "center",
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    shadowColor: Colors.primary,
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  contactBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.white,
+  },
+  shareBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    backgroundColor: Colors.bg,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  backBtnText: { color: "#1B4332", fontWeight: "600" },
-  nextBtn: {
-    flex: 2,
-    backgroundColor: "#1B4332",
-    borderRadius: 10,
-    padding: 14,
-    alignItems: "center",
+  shareBtnText: {
+    fontSize: 18,
+    color: Colors.textMuted,
   },
-  nextBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  newBookingBtn: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+  },
+  newBookingText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
 });
